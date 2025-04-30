@@ -3,6 +3,10 @@
     "displayName": "Folder Structure Generator",
     "description": "Generates folder and file structure from JSON input",
     "version": "1.0.4",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/AbelardoR/folder-structure-generator"
+    },
     "engines": {
         "vscode": "^1.75.0"
     },

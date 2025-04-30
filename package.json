@@ -1,0 +1,24 @@
+{
+    "name": "folder-structure-generator",
+    "displayName": "Folder Structure Generator",
+    "description": "Generates folder and file structure from JSON input",
+    "version": "1.0.4",
+    "engines": {
+        "vscode": "^1.75.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "main": "./extension.js",
+    "activationEvents": [
+        "onCommand:extension.generateStructure"
+    ],
+    "contributes": {
+        "commands": [
+            {
+                "command": "extension.generateStructure",
+                "title": "Generate Folder/File Structure"
+            }
+        ]
+    }
+}

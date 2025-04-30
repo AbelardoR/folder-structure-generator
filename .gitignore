@@ -1,0 +1,7 @@
+# Dependency directories
+node_modules/
+
+# VS Code user-specific files
+.vscode/*.local.*
+.vscode/launch.json
+.vscode/tasks.json

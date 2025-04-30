@@ -3,6 +3,7 @@
     "displayName": "Folder Structure Generator",
     "description": "Generates folder and file structure from JSON input",
     "version": "1.0.4",
+    "icon": "icon/icon.png",
     "repository": {
         "type": "git",
         "url": "https://github.com/AbelardoR/folder-structure-generator"
@@ -24,5 +25,11 @@
                 "title": "Generate Folder/File Structure"
             }
         ]
-    }
+    },
+    "galleryBanner": {
+        "color": "#FFFFFF",
+        "theme": "light"
+    },
+    "badges": [],
+    "preview": true
 }

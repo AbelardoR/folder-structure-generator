@@ -1,7 +1,7 @@
 {
     "name": "folder-structure-generator",
     "displayName": "Folder Structure Generator",
-    "description": "Generates folder and file structure from JSON input",
+    "description": "Generates folder and file structure from tree-format text input",
     "version": "1.0.4",
     "publisher": "AbelardoR",
     "icon": "icon/icon.png",

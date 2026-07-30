@@ -1,31 +1,47 @@
 const vscode = require('vscode');
-const fs = require('fs');
-const path = require('path');
 const { parseTreeText } = require('./parser');
-const { ConflictStrategy, countItems, buildStructure } = require('./creator');
+const { countItems, buildStructure } = require('./creator');
+const { getWebviewContent } = require('./webview');
 
 function activate(context) {
     context.subscriptions.push(
-        vscode.commands.registerCommand('extension.generateStructure', async () => {
+        vscode.commands.registerCommand('extension.generateStructure', () => {
+            const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+            if (!rootPath) {
+                vscode.window.showErrorMessage('No workspace folder is open');
+                return;
+            }
+
+            showStructureForm(rootPath);
+        })
+    );
+}
+
+// ── WebView form ─────────────────────────────────────────────────────
+
+/**
+ * Open a WebView panel with a form to paste tree text and choose strategy.
+ */
+function showStructureForm(rootPath) {
+    const panel = vscode.window.createWebviewPanel(
+        'folderStructureGenerator',
+        'Folder Structure Generator',
+        vscode.ViewColumn.One,
+        { enableScripts: true, retainContextWhenHidden: true }
+    );
+
+    panel.webview.html = getWebviewContent();
+    panel.webview.onDidReceiveMessage(async (message) => {
+        if (message.command === 'generate') {
+            const { text, strategy } = message;
+
+            if (!text || !text.trim()) {
+                vscode.window.showErrorMessage('Please enter a folder structure.');
+                return;
+            }
+
             try {
-                const rootPath = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-                if (!rootPath) {
-                    vscode.window.showErrorMessage('No workspace folder is open');
-                    return;
-                }
-
-                // 1) Find or select a structure file
-                const fileUri = await pickStructureFile(rootPath);
-                if (!fileUri) return;
-
-                // 2) Choose how to handle existing files
-                const strategy = await pickConflictStrategy();
-                if (!strategy) return;
-
-                // 3) Parse and generate
-                const content = fs.readFileSync(fileUri.fsPath, 'utf8');
-                const structure = parseTreeText(content);
-
+                const structure = parseTreeText(text);
                 const totalItems = countItems(structure);
                 let done = 0;
 
@@ -44,59 +60,16 @@ function activate(context) {
                     }
                 }));
 
+                panel.dispose();
                 vscode.window.showInformationMessage(
                     `Structure created — ${totalItems} item(s) processed`
                 );
             } catch (err) {
                 vscode.window.showErrorMessage(`Error: ${err.message}`);
             }
-        })
-    );
-}
-
-// ── Helpers ──────────────────────────────────────────────────────────
-
-/**
- * Search the workspace for *.txt files whose name contains "structure".
- * If found let the user pick one; otherwise show an info message.
- * @returns { vscode.Uri | undefined }
- */
-async function pickStructureFile(rootPath) {
-    const files = await vscode.workspace.findFiles('**/*structure*.txt');
-
-    if (files.length === 0) {
-        vscode.window.showInformationMessage(
-            'No *structure*.txt file found in the workspace. ' +
-            'Create a .txt file with the tree structure and try again.'
-        );
-        return undefined;
-    }
-
-    const picks = files.map(f => ({
-        label: path.relative(rootPath, f.fsPath),
-        uri: f,
-    }));
-
-    const selected = await vscode.window.showQuickPick(picks, {
-        placeHolder: 'Select a structure file (.txt)',
-    });
-
-    return selected?.uri;
-}
-
-/**
- * Show a quick-pick asking how to handle pre-existing files/folders.
- * @returns { string | undefined } One of ConflictStrategy values.
- */
-async function pickConflictStrategy() {
-    const options = [
-        ConflictStrategy.SKIP,
-        ConflictStrategy.MERGE,
-        ConflictStrategy.OVERWRITE,
-    ];
-
-    return vscode.window.showQuickPick(options, {
-        placeHolder: 'How to handle existing files and folders?',
+        } else if (message.command === 'cancel') {
+            panel.dispose();
+        }
     });
 }
 
